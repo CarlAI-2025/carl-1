@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  etl-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: etl-agent-pipeline-local
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/secrets/key.json
+      - GCP_PROJECT_ID=your-project-id
+      - JAVA_TOOL_OPTIONS=-Xmx512m
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/secrets/key.json:ro
+      - ./data/input:/data/input
+      - ./data/output:/data/output
+      - ./logs:/app/logs
+    ports:
+      - "8080:8080"
+    networks:
+      - etl-network
+    command: >
+      com.etl.agent.ETLPipelineMain
+      gs://your-bucket/data.csv
+      etl_dataset
+      transactions
+    restart: on-failure:3
+    depends_on:
+      - gcloud-emulator
+
+  gcloud-emulator:
+    image: google/cloud-sdk:latest
+    container_name: gcloud-emulator
+    environment:
+      - CLOUDSDK_CORE_PROJECT=your-project-id
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/secrets/key.json:ro
+    networks:
+      - etl-network
+    command: gcloud beta emulators firestore start --host-port=0.0.0.0:8081
+
+  postgres-audit:
+    image: postgres:15-alpine
+    container_name: etl-audit-db
+    environment:
+      POSTGRES_DB: etl_audit
+      POSTGRES_USER: etl_user
+      POSTGRES_PASSWORD: etl_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - etl-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etl_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  etl-network:
+    driver: bridge
+
