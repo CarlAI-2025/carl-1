@@ -1,0 +1,61 @@
+The Orchestrator (ADK Root Agent)
+   Formal name: Conductor
+   Triggered by: User request
+   Responsibilities:
+      1. Owns end-to-end workflow;
+      2. Routes tasks;
+      3. Maintains job state;
+      4. Handles retries/failures;
+      5. Enforces ordering;
+      6. Decides when to request human approval
+      7. Maintains run/version lineage (dataset_version, mapping_version)
+
+Ingestion Agent
+   Formal name: Scout
+   Triggered by: Event (file drop)
+   Responsibnilities:
+      1. Pull the dataset (file/API)
+      2. Format checks + basic validation
+      3. Generate stats/metrics
+      4. Emit schema fingerprint + sample rows
+
+Schema Inference Agent
+   Formal name: Cartographer
+   Triggered by: Conductor
+   Responsibilities:
+      1. infers schema/semantics with confidence scores (Samples data)
+      2. detects schema drift vs prior version;
+      3. outputs “Source Schema Contract” JSON
+
+Standards Mapping & Canonical Model Agent
+   Formal name: Navigator
+   Triggered by: Conductor
+   Responsibilities:
+      1. Maps source fields to canonical security master model;
+      2. Resolves conflicts;
+      3. Recommends identifier enrichment (FIGI) and standard codes (MIC, CFI);
+      4. Generates Mapping Spec YAML/JSON + rationale
+      5. Outputs confidence score per mapping
+
+Transformation & Enrichment Agent
+   Formal name: Alchemist
+   Triggered by: Conductor
+   Responsibilities:
+      1. Produces cleaning + enrichment logic: normalization (case/trim), currency/date parsing, dedup + survivorship, missing value handling, identifier validation, joins to lookups
+      2. Outputs Transformation Rules (declarative)
+      3. Generates Executable Templates
+
+Pipeline Generator Agent
+   Formal name: Architect
+   Triggered by: Conductor
+   Responsibilities:
+      1. Generates runnable pipeline artifacts from mapping + transformation plan. MVP: BigQuery SQL scripts + scheduled execution.
+      2. Scale (optional): Beam/Dataflow pipeline skeleton only (non-executed in demo)
+
+Auditor Agent (DQ + Compliance + Reasoning Logs)
+   Formal name: Auditor
+   Triggered by: Conductor
+   Responsibilities:
+      1. DQ scorecard (table)
+      2. Compliance score (0–100)
+      3. Reasoning log (mapping & transformation rationale)
