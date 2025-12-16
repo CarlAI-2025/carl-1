@@ -1,4 +1,4 @@
-package com.etl.agent.adk.core;
+package com.etl.adk.core;
 
 import com.google.cloud.vertexai.api.GenerateContentResponse;
 import lombok.Getter;

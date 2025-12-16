@@ -1,4 +1,4 @@
-package com.etl.agent.adk;
+package com.etl.adk;
 
 import com.google.cloud.vertexai.VertexAI;
 import com.google.cloud.vertexai.generativeai.GenerativeModel;

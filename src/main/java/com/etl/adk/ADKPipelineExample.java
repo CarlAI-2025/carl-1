@@ -1,4 +1,4 @@
-package com.etl.agent.adk;
+package com.etl.adk;
 
 import com.etl.noadk.domain.PipelineJob;
 import lombok.extern.slf4j.Slf4j;

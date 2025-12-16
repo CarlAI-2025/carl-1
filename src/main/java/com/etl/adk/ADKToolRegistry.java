@@ -1,4 +1,4 @@
-package com.etl.agent.adk;
+package com.etl.adk;
 
 import com.google.cloud.vertexai.api.Tool;
 import com.google.cloud.vertexai.api.FunctionDeclaration;

@@ -1,4 +1,4 @@
-package com.etl.agent.adk;
+package com.etl.adk;
 
 import com.etl.agent.adk.agents.ConductorADKAgent;
 import com.etl.agent.adk.core.ADKBaseAgent;
