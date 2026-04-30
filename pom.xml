@@ -12,7 +12,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <gcp.version>26.14.0</gcp.version>
+        <gcp.version>26.35.0</gcp.version>
         <bigquery.version>2.56.0</bigquery.version>
         <storage.version>2.33.0</storage.version>
         <logging.version>3.17.0</logging.version>
@@ -32,11 +32,31 @@
     </dependencyManagement>
 
     <dependencies>
+<!--        REPLACEMENT VERSIONS -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>4.27.5</version>
+        </dependency>
         <!-- Google Cloud BigQuery -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-bigquery</artifactId>
             <version>${bigquery.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-netty-shaded</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-common</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Google Cloud Storage -->
@@ -57,28 +77,34 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-vertexai</artifactId>
-            <version>0.7.0</version>
+            <version>1.41.0</version>
         </dependency>
 
         <!-- Google API Client for ADK integration -->
         <dependency>
             <groupId>com.google.api.grpc</groupId>
             <artifactId>grpc-google-cloud-aiplatform-v1</artifactId>
-            <version>3.36.0</version>
+            <!-- version managed by libraries-bom -->
         </dependency>
 
         <!-- gRPC for real-time agent communication -->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
-            <version>1.60.0</version>
+            <version>1.75.0</version>
         </dependency>
 
         <!-- Google Cloud AI Platform (Generative AI) -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-aiplatform</artifactId>
-            <version>3.36.0</version>
+            <!-- version managed by libraries-bom -->
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- CSV Processing -->
@@ -111,7 +137,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.4.12</version>
+            <version>1.5.25</version>
         </dependency>
 
         <!-- Lombok -->
