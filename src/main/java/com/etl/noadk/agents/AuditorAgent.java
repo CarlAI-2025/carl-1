@@ -15,10 +15,15 @@ import java.util.*;
  */
 @Slf4j
 public class AuditorAgent implements ETLAgent {
-    private final BigQuery bigQuery;
+    private BigQuery bigQuery;
 
     public AuditorAgent() {
-        this.bigQuery = BigQueryOptions.getDefaultInstance().getService();
+        try {
+            this.bigQuery = BigQueryOptions.getDefaultInstance().getService();
+        } catch (Exception e) {
+            log.warn("Could not initialize BigQuery service: {}. Falling back to null.", e.getMessage());
+            this.bigQuery = null;
+        }
     }
 
     @Override

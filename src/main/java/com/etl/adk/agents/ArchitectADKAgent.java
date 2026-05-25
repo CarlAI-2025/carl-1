@@ -1,7 +1,7 @@
 package com.etl.adk.agents;
 
-import com.etl.agent.adk.core.ADKBaseAgent;
-import com.etl.agent.adk.core.VertexAIClientCore;
+import com.etl.adk.core.ADKBaseAgent;
+import com.etl.adk.core.VertexAIClientCore;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import lombok.extern.slf4j.Slf4j;

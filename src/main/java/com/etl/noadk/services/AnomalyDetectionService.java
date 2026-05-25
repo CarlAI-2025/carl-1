@@ -11,7 +11,7 @@ import java.util.*;
  */
 @Slf4j
 public class AnomalyDetectionService {
-    private static final double Z_SCORE_THRESHOLD = 3.0;
+    private static final double Z_SCORE_THRESHOLD = 2.0;
     private static final double IQR_MULTIPLIER = 1.5;
 
     /**
@@ -71,7 +71,7 @@ public class AnomalyDetectionService {
     public List<AnomalyReport> detectDistributionAnomalies(String fieldName, List<Double> values) {
         List<AnomalyReport> reports = new ArrayList<>();
 
-        if (values.size() < 10) {
+        if (values.size() < 6) {
             return reports;
         }
 
@@ -79,11 +79,11 @@ public class AnomalyDetectionService {
         double kurtosis = calculateKurtosis(values);
 
         // High skewness indicates asymmetric distribution
-        if (Math.abs(skewness) > 2.0) {
+        if (Math.abs(skewness) > 1.0) {
             AnomalyReport report = new AnomalyReport();
             report.setFieldName(fieldName);
             report.setAnomalyType("DISTRIBUTION_SKEW");
-            report.setSeverity(Math.abs(skewness) > 3.0 ? AnomalyReport.AnomalySeverity.HIGH : AnomalyReport.AnomalySeverity.MEDIUM);
+            report.setSeverity(Math.abs(skewness) > 2.0 ? AnomalyReport.AnomalySeverity.HIGH : AnomalyReport.AnomalySeverity.MEDIUM);
             report.setDescription(String.format("Distribution skewness: %.2f", skewness));
             report.getStatisticalMetrics().put("skewness", skewness);
             report.getStatisticalMetrics().put("kurtosis", kurtosis);
@@ -138,15 +138,15 @@ public class AnomalyDetectionService {
         double cardinalityRatio = (double) uniqueValues.size() / values.size();
 
         // Too low cardinality (near-constant)
-        if (cardinalityRatio < 0.01 && uniqueValues.size() < 5) {
+        if (values.size() >= 10 && uniqueValues.size() <= 2) {
             AnomalyReport report = new AnomalyReport();
             report.setFieldName(fieldName);
             report.setAnomalyType("LOW_CARDINALITY");
-            report.setSeverity(AnomalyReport.AnomalySeverity.MEDIUM);
+            report.setSeverity(AnomalyReport.AnomalySeverity.LOW);
             report.setDescription(String.format("Only %d unique values in %d records", uniqueValues.size(), values.size()));
             report.getStatisticalMetrics().put("unique_count", (double) uniqueValues.size());
             report.getStatisticalMetrics().put("cardinality_ratio", cardinalityRatio);
-            report.setConfidenceScore(0.9);
+            report.setConfidenceScore(0.8);
 
             report.getSuggestedTransformations().add("DROP_FIELD");
             report.getSuggestedTransformations().add("CONSOLIDATE_CATEGORIES");
