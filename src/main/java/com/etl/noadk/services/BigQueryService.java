@@ -10,16 +10,25 @@ import java.util.*;
  */
 @Slf4j
 public class BigQueryService {
-    private final BigQuery bigQuery;
+    private BigQuery bigQuery;
 
     public BigQueryService() {
-        this.bigQuery = BigQueryOptions.getDefaultInstance().getService();
+        try {
+            this.bigQuery = BigQueryOptions.getDefaultInstance().getService();
+        } catch (Exception e) {
+            log.warn("Could not initialize BigQuery service: {}. Falling back to null.", e.getMessage());
+            this.bigQuery = null;
+        }
     }
 
     /**
      * Create dataset if not exists.
      */
     public void createDatasetIfNotExists(String datasetId) throws Exception {
+        if (bigQuery == null) {
+            log.warn("BigQuery service not available, skipping dataset creation");
+            return;
+        }
         try {
             DatasetInfo datasetInfo = DatasetInfo.newBuilder(datasetId)
                     .setDescription("ETL Pipeline Dataset")
@@ -41,6 +50,10 @@ public class BigQueryService {
      * Create table with schema if not exists.
      */
     public void createTableIfNotExists(String datasetId, String tableId, Schema schema) throws Exception {
+        if (bigQuery == null) {
+            log.warn("BigQuery service not available, skipping table creation");
+            return;
+        }
         try {
             TableId tableIdentifier = TableId.of(datasetId, tableId);
             TableInfo tableInfo = TableInfo.newBuilder(tableIdentifier, StandardTableDefinition.of(schema))
@@ -99,6 +112,10 @@ public class BigQueryService {
      * Check if job ID already exists (for idempotency).
      */
     public boolean jobAlreadyExecuted(String datasetId, String jobId) throws Exception {
+        if (bigQuery == null) {
+            log.warn("BigQuery service not available, assuming job not executed");
+            return false;
+        }
         String query = String.format(
                 "SELECT COUNT(*) as count FROM `%s.job_lineage` WHERE job_id = '%s'",
                 datasetId, jobId
@@ -117,6 +134,10 @@ public class BigQueryService {
      * Execute SQL query and return results.
      */
     public TableResult executeSql(String query) throws Exception {
+        if (bigQuery == null) {
+            log.warn("BigQuery service not available, skipping SQL execution");
+            return null;
+        }
         log.info("Executing SQL query");
         QueryJobConfiguration queryConfig = QueryJobConfiguration.newBuilder(query).build();
         return bigQuery.query(queryConfig);
@@ -127,6 +148,10 @@ public class BigQueryService {
      */
     public void loadCsvToTable(String gcsPath, String datasetId, String tableId,
                                FormatOptions format) throws Exception {
+        if (bigQuery == null) {
+            log.warn("BigQuery service not available, skipping CSV load");
+            return;
+        }
         LoadJobConfiguration loadConfig = LoadJobConfiguration.newBuilder(
                 TableId.of(datasetId, tableId),
                 gcsPath

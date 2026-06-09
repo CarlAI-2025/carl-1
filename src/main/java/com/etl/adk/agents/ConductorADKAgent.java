@@ -1,7 +1,7 @@
 package com.etl.adk.agents;
 
-import com.etl.agent.adk.core.ADKBaseAgent;
-import com.etl.agent.adk.core.VertexAIClientCore;
+import com.etl.adk.core.ADKBaseAgent;
+import com.etl.adk.core.VertexAIClientCore;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import lombok.extern.slf4j.Slf4j;
@@ -89,7 +89,7 @@ public class ConductorADKAgent implements ADKBaseAgent {
         try {
             // 1. Scout - Ingestion
             log.info("Conductor: [1/6] Triggering Scout Agent");
-            ADKBaseAgent.AgentResponse scoutResponse = executeAgentWithRetry(scout, request);
+            AgentResponse scoutResponse = executeAgentWithRetry(scout, request);
             if (!scoutResponse.isSuccess()) {
                 return failedResponse(jobId, "Scout failed", startTime);
             }
@@ -97,10 +97,10 @@ public class ConductorADKAgent implements ADKBaseAgent {
 
             // 2. Cartographer - Schema Inference
             log.info("Conductor: [2/6] Triggering Cartographer Agent");
-            ADKBaseAgent.AgentRequest cartRequest = new ADKBaseAgent.AgentRequest(
+            AgentRequest cartRequest = new AgentRequest(
                     jobId, scoutResponse.getResult(), "application/json"
             );
-            ADKBaseAgent.AgentResponse cartResponse = executeAgentWithRetry(cartographer, cartRequest);
+            AgentResponse cartResponse = executeAgentWithRetry(cartographer, cartRequest);
             if (!cartResponse.isSuccess()) {
                 return failedResponse(jobId, "Cartographer failed", startTime);
             }
@@ -108,10 +108,10 @@ public class ConductorADKAgent implements ADKBaseAgent {
 
             // 3. Navigator - Field Mapping
             log.info("Conductor: [3/6] Triggering Navigator Agent");
-            ADKBaseAgent.AgentRequest navRequest = new ADKBaseAgent.AgentRequest(
+            AgentRequest navRequest = new AgentRequest(
                     jobId, cartResponse.getResult(), "application/json"
             );
-            ADKBaseAgent.AgentResponse navResponse = executeAgentWithRetry(navigator, navRequest);
+            AgentResponse navResponse = executeAgentWithRetry(navigator, navRequest);
             if (!navResponse.isSuccess()) {
                 return failedResponse(jobId, "Navigator failed", startTime);
             }
@@ -119,10 +119,10 @@ public class ConductorADKAgent implements ADKBaseAgent {
 
             // 4. Alchemist - Transformation Rules
             log.info("Conductor: [4/6] Triggering Alchemist Agent");
-            ADKBaseAgent.AgentRequest alcRequest = new ADKBaseAgent.AgentRequest(
+            AgentRequest alcRequest = new AgentRequest(
                     jobId, navResponse.getResult(), "application/json"
             );
-            ADKBaseAgent.AgentResponse alcResponse = executeAgentWithRetry(alchemist, alcRequest);
+            AgentResponse alcResponse = executeAgentWithRetry(alchemist, alcRequest);
             if (!alcResponse.isSuccess()) {
                 return failedResponse(jobId, "Alchemist failed", startTime);
             }
@@ -130,10 +130,10 @@ public class ConductorADKAgent implements ADKBaseAgent {
 
             // 5. Architect - SQL Generation
             log.info("Conductor: [5/6] Triggering Architect Agent");
-            ADKBaseAgent.AgentRequest archRequest = new ADKBaseAgent.AgentRequest(
+            AgentRequest archRequest = new AgentRequest(
                     jobId, alcResponse.getResult(), "application/json"
             );
-            ADKBaseAgent.AgentResponse archResponse = executeAgentWithRetry(architect, archRequest);
+            AgentResponse archResponse = executeAgentWithRetry(architect, archRequest);
             if (!archResponse.isSuccess()) {
                 return failedResponse(jobId, "Architect failed", startTime);
             }
@@ -141,10 +141,10 @@ public class ConductorADKAgent implements ADKBaseAgent {
 
             // 6. Auditor - Quality Assessment
             log.info("Conductor: [6/6] Triggering Auditor Agent");
-            ADKBaseAgent.AgentRequest audRequest = new ADKBaseAgent.AgentRequest(
+            AgentRequest audRequest = new AgentRequest(
                     jobId, archResponse.getResult(), "application/json"
             );
-            ADKBaseAgent.AgentResponse audResponse = executeAgentWithRetry(auditor, audRequest);
+            AgentResponse audResponse = executeAgentWithRetry(auditor, audRequest);
             if (!audResponse.isSuccess()) {
                 return failedResponse(jobId, "Auditor failed", startTime);
             }
@@ -160,7 +160,7 @@ public class ConductorADKAgent implements ADKBaseAgent {
 
             String finalReport = buildFinalReport(jobId, datasetVersion, mappingVersion);
 
-            return new ADKBaseAgent.AgentResponse(jobId, finalReport, duration, true, null);
+            return new AgentResponse(jobId, finalReport, duration, true, null);
 
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
@@ -184,7 +184,7 @@ public class ConductorADKAgent implements ADKBaseAgent {
     /**
      * Execute agent with retry logic
      */
-    private ADKBaseAgent.AgentResponse executeAgentWithRetry(ADKBaseAgent agent, ADKBaseAgent.AgentRequest request) throws Exception {
+    private AgentResponse executeAgentWithRetry(ADKBaseAgent agent, AgentRequest request) throws Exception {
         int maxRetries = 3;
         int attempt = 1;
 
@@ -208,10 +208,10 @@ public class ConductorADKAgent implements ADKBaseAgent {
     /**
      * Build failed response
      */
-    private ADKBaseAgent.AgentResponse failedResponse(String jobId, String error, long startTime) {
+    private AgentResponse failedResponse(String jobId, String error, long startTime) {
         long duration = System.currentTimeMillis() - startTime;
         log.error("Conductor: Pipeline failed with error: {}", error);
-        return new ADKBaseAgent.AgentResponse(jobId, null, duration, false, error);
+        return new AgentResponse(jobId, null, duration, false, error);
     }
 
     /**
